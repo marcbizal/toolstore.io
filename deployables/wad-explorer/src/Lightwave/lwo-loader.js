@@ -54,8 +54,6 @@ async function loadLWO(url) {
   const buffer = Buffer.from(await loader.loadAsync(url))
   const lwo = parseBuffer(buffer)
 
-  debugger
-
   debug('loaded lwo: %o', lwo)
 
   const geometry = new THREE.BufferGeometry()
@@ -129,8 +127,23 @@ async function loadLWO(url) {
         material.color = new THREE.Color(`rgb(${red}, ${green}, ${blue})`)
       }
 
+      if ('FLAG' in attributes) {
+        const { additive } = attributes['FLAG']
+        if (additive) {
+          material.transparent = true
+          material.blending = THREE.AdditiveBlending
+        }
+      }
+
       if ('TIMG' in attributes) {
-        const filename = trimNull(attributes['TIMG'].split('\\').pop())
+        const filename = trimNull(
+          (Array.isArray(attributes['TIMG'])
+            ? attributes['TIMG'].pop()
+            : attributes['TIMG']
+          )
+            .split('\\')
+            .pop(),
+        )
         if (filename.startsWith('A')) {
           material.transparent = true
           material.alphaTest = 0.5
